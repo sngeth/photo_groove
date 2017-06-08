@@ -8262,10 +8262,57 @@ var _elm_lang$html$Html_Events$Options = F2(
 
 var _user$project$PhotoGroove$update = F2(
 	function (msg, model) {
-		return _elm_lang$core$Native_Utils.eq(msg.operation, 'SELECT_PHOTO') ? _elm_lang$core$Native_Utils.update(
-			model,
-			{selectedUrl: msg.data}) : model;
+		var _p0 = msg.operation;
+		switch (_p0) {
+			case 'SELECT_PHOTO':
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{selectedUrl: msg.data});
+			case 'SUPRISE_ME':
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{selectedUrl: '2.jpeg'});
+			default:
+				return model;
+		}
 	});
+var _user$project$PhotoGroove$sizeToString = function (size) {
+	var _p1 = size;
+	switch (_p1.ctor) {
+		case 'Small':
+			return 'small';
+		case 'Medium':
+			return 'med';
+		default:
+			return 'large';
+	}
+};
+var _user$project$PhotoGroove$viewSizeChooser = function (size) {
+	return A2(
+		_elm_lang$html$Html$label,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$input,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$type_('radio'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$name('size'),
+						_1: {ctor: '[]'}
+					}
+				},
+				{ctor: '[]'}),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(
+					_user$project$PhotoGroove$sizeToString(size)),
+				_1: {ctor: '[]'}
+			}
+		});
+};
 var _user$project$PhotoGroove$urlPrefix = 'http://elm-in-action.com/';
 var _user$project$PhotoGroove$viewThumbnail = F2(
 	function (selectedUrl, thumbnail) {
@@ -8297,6 +8344,39 @@ var _user$project$PhotoGroove$viewThumbnail = F2(
 			},
 			{ctor: '[]'});
 	});
+var _user$project$PhotoGroove$selectPhoto = {operation: 'SELECT_PHOTO', data: '1.jpeg'};
+var _user$project$PhotoGroove$Photo = function (a) {
+	return {url: a};
+};
+var _user$project$PhotoGroove$Model = F3(
+	function (a, b, c) {
+		return {photos: a, selectedUrl: b, chosenSize: c};
+	});
+var _user$project$PhotoGroove$Msg = F2(
+	function (a, b) {
+		return {operation: a, data: b};
+	});
+var _user$project$PhotoGroove$Large = {ctor: 'Large'};
+var _user$project$PhotoGroove$Medium = {ctor: 'Medium'};
+var _user$project$PhotoGroove$initialModel = {
+	photos: {
+		ctor: '::',
+		_0: {url: '1.jpeg'},
+		_1: {
+			ctor: '::',
+			_0: {url: '2.jpeg'},
+			_1: {
+				ctor: '::',
+				_0: {url: '3.jpeg'},
+				_1: {ctor: '[]'}
+			}
+		}
+	},
+	selectedUrl: '1.jpeg',
+	chosenSize: _user$project$PhotoGroove$Medium
+};
+var _user$project$PhotoGroove$photoArray = _elm_lang$core$Array$fromList(_user$project$PhotoGroove$initialModel.photos);
+var _user$project$PhotoGroove$Small = {ctor: 'Small'};
 var _user$project$PhotoGroove$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -8318,54 +8398,96 @@ var _user$project$PhotoGroove$view = function (model) {
 			_1: {
 				ctor: '::',
 				_0: A2(
-					_elm_lang$html$Html$div,
+					_elm_lang$html$Html$button,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$id('thumbnails'),
+						_0: _elm_lang$html$Html_Events$onClick(
+							{operation: 'SUPRISE_ME', data: ''}),
 						_1: {ctor: '[]'}
 					},
-					A2(
-						_elm_lang$core$List$map,
-						_user$project$PhotoGroove$viewThumbnail(model.selectedUrl),
-						model.photos)),
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Suprise Me!'),
+						_1: {ctor: '[]'}
+					}),
 				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$img,
+						_elm_lang$html$Html$h3,
+						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('large'),
+							_0: _elm_lang$html$Html$text('Thumbnail Size:'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$id('choose-size'),
+								_1: {ctor: '[]'}
+							},
+							A2(
+								_elm_lang$core$List$map,
+								_user$project$PhotoGroove$viewSizeChooser,
+								{
+									ctor: '::',
+									_0: _user$project$PhotoGroove$Small,
+									_1: {
+										ctor: '::',
+										_0: _user$project$PhotoGroove$Medium,
+										_1: {
+											ctor: '::',
+											_0: _user$project$PhotoGroove$Large,
+											_1: {ctor: '[]'}
+										}
+									}
+								})),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$id('thumbnails'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class(
+											_user$project$PhotoGroove$sizeToString(model.chosenSize)),
+										_1: {ctor: '[]'}
+									}
+								},
+								A2(
+									_elm_lang$core$List$map,
+									_user$project$PhotoGroove$viewThumbnail(model.selectedUrl),
+									model.photos)),
 							_1: {
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$src(
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										_user$project$PhotoGroove$urlPrefix,
-										A2(_elm_lang$core$Basics_ops['++'], 'large/', model.selectedUrl))),
+								_0: A2(
+									_elm_lang$html$Html$img,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('large'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$src(
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													_user$project$PhotoGroove$urlPrefix,
+													A2(_elm_lang$core$Basics_ops['++'], 'large/', model.selectedUrl))),
+											_1: {ctor: '[]'}
+										}
+									},
+									{ctor: '[]'}),
 								_1: {ctor: '[]'}
 							}
-						},
-						{ctor: '[]'}),
-					_1: {ctor: '[]'}
+						}
+					}
 				}
 			}
 		});
-};
-var _user$project$PhotoGroove$initialModel = {
-	photos: {
-		ctor: '::',
-		_0: {url: '1.jpeg'},
-		_1: {
-			ctor: '::',
-			_0: {url: '2.jpeg'},
-			_1: {
-				ctor: '::',
-				_0: {url: '3.jpeg'},
-				_1: {ctor: '[]'}
-			}
-		}
-	},
-	selectedUrl: '1.jpeg'
 };
 var _user$project$PhotoGroove$main = _elm_lang$html$Html$beginnerProgram(
 	{model: _user$project$PhotoGroove$initialModel, view: _user$project$PhotoGroove$view, update: _user$project$PhotoGroove$update})();
