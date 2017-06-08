@@ -3,6 +3,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Array exposing (Array)
+import Random
+
 
 type alias Photo =
     { url : String }
@@ -19,6 +21,7 @@ type Msg
     = SelectByUrl String
       | SupriseMe
       | SetSize ThumbnailSize
+      | SelectByIndex Int
 
 
 type ThumbnailSize
@@ -42,6 +45,11 @@ initialModel =
 photoArray : Array Photo
 photoArray =
     Array.fromList initialModel.photos
+
+
+randomPhotoPicker : Random.Generator Int
+randomPhotoPicker =
+  Random.int 0 (Array.length photoArray - 1)
 
 
 getPhotoUrl : Int -> String
@@ -92,15 +100,17 @@ sizeToString size =
           "large"
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        SelectByIndex index ->
+            ( { model | selectedUrl = getPhotoUrl index }, Cmd.none )
         SelectByUrl url ->
-            { model | selectedUrl = url }
+            ( { model | selectedUrl = url }, Cmd.none )
         SupriseMe ->
-            { model | selectedUrl = "2.jpeg" }
+            ( model, Random.generate SelectByIndex randomPhotoPicker )
         SetSize size ->
-            { model | chosenSize = size }
+            ( { model | chosenSize = size }, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -122,9 +132,11 @@ view model =
             []
         ]
 
+main : Program Never Model Msg
 main =
-    Html.beginnerProgram
-        { model = initialModel
+    Html.program
+        { init = ( initialModel, Cmd.none )
         , view = view
         , update = update
+        , subscriptions = (\model -> Sub.none)
         }
