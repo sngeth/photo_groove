@@ -15,8 +15,10 @@ type alias Model =
     }
 
 
-type alias Msg =
-    { operation : String, data : String }
+type Msg
+    = SelectByUrl String
+      | SupriseMe
+      | SetSize ThumbnailSize
 
 
 type ThumbnailSize
@@ -42,6 +44,15 @@ photoArray =
     Array.fromList initialModel.photos
 
 
+getPhotoUrl : Int -> String
+getPhotoUrl index =
+    case Array.get index photoArray of
+        Just photo ->
+            photo.url
+        Nothing ->
+            ""
+
+
 selectPhoto : { operation : String, data : String }
 selectPhoto = { operation = "SELECT_PHOTO", data = "1.jpeg" }
 
@@ -55,7 +66,7 @@ viewThumbnail : String -> Photo -> Html Msg
 viewThumbnail selectedUrl thumbnail =
     img [ src (urlPrefix ++ thumbnail.url)
         , classList [ ( "selected", selectedUrl == thumbnail.url ) ]
-        , onClick { operation = "SELECT_PHOTO", data = thumbnail.url }
+        , onClick (SelectByUrl thumbnail.url)
         ]
         []
 
@@ -63,7 +74,7 @@ viewThumbnail selectedUrl thumbnail =
 viewSizeChooser : ThumbnailSize -> Html Msg
 viewSizeChooser size =
     label []
-        [ input [ type_ "radio", name "size" ] []
+        [ input [ type_ "radio", name "size", onClick (SetSize size) ] []
         , text (sizeToString size)
         ]
 
@@ -83,15 +94,13 @@ sizeToString size =
 
 update : Msg -> Model -> Model
 update msg model =
-    case msg.operation of
-        "SELECT_PHOTO" ->
-            { model | selectedUrl = msg.data }
-
-        "SUPRISE_ME" ->
+    case msg of
+        SelectByUrl url ->
+            { model | selectedUrl = url }
+        SupriseMe ->
             { model | selectedUrl = "2.jpeg" }
-
-        _ ->
-            model
+        SetSize size ->
+            { model | chosenSize = size }
 
 
 view : Model -> Html Msg
@@ -99,7 +108,7 @@ view model =
     div [ class "content" ]
         [ h1 [] [ text "Photo Groove" ]
         , button
-            [ onClick { operation = "SUPRISE_ME", data = "" } ]
+            [ onClick SupriseMe ]
             [ text "Suprise Me!" ]
         , h3 [] [ text "Thumbnail Size:" ]
         , div [ id "choose-size" ]
