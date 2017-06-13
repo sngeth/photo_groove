@@ -12,7 +12,8 @@ type alias Photo =
 
 type alias Model =
     { photos : List Photo
-    , selectedUrl : String
+    , selectedUrl : Maybe String
+    , loadingError : Maybe String
     , chosenSize : ThumbnailSize
     }
 
@@ -32,12 +33,9 @@ type ThumbnailSize
 
 initialModel : Model
 initialModel =
-    { photos =
-        [ { url = "1.jpeg" }
-      , { url = "2.jpeg" }
-      , { url = "3.jpeg" }
-      ]
-    , selectedUrl = "1.jpeg"
+    { photos = []
+    , selectedUrl = Nothing
+    , loadingError = Nothing
     , chosenSize = Medium
     }
 
@@ -52,13 +50,13 @@ randomPhotoPicker =
   Random.int 0 (Array.length photoArray - 1)
 
 
-getPhotoUrl : Int -> String
+getPhotoUrl : Int -> Maybe String
 getPhotoUrl index =
     case Array.get index photoArray of
         Just photo ->
-            photo.url
+            Just photo.url
         Nothing ->
-            ""
+           Nothing
 
 
 selectPhoto : { operation : String, data : String }
@@ -73,7 +71,7 @@ urlPrefix =
 viewThumbnail : String -> Photo -> Html Msg
 viewThumbnail selectedUrl thumbnail =
     img [ src (urlPrefix ++ thumbnail.url)
-        , classList [ ( "selected", selectedUrl == thumbnail.url ) ]
+        , classList [ ( "selected", selectedUrl == Just thumbnail.url ) ]
         , onClick (SelectByUrl thumbnail.url)
         ]
         []
@@ -106,7 +104,7 @@ update msg model =
         SelectByIndex index ->
             ( { model | selectedUrl = getPhotoUrl index }, Cmd.none )
         SelectByUrl url ->
-            ( { model | selectedUrl = url }, Cmd.none )
+            ( { model | selectedUrl = Just url }, Cmd.none )
         SupriseMe ->
             ( model, Random.generate SelectByIndex randomPhotoPicker )
         SetSize size ->
@@ -125,12 +123,17 @@ view model =
             (List.map viewSizeChooser [ Small, Medium, Large ])
         , div [ id "thumbnails", class (sizeToString model.chosenSize) ]
             (List.map (viewThumbnail model.selectedUrl) model.photos)
-        , img
-            [ class "large"
-            , src (urlPrefix ++ "large/" ++ model.selectedUrl)
-            ]
-            []
+        , viewLarge model.selectedUrl
         ]
+
+viewLarge : Maybe String -> Html Msg
+viewLarge maybeUrl =
+    case maybeUrl of
+        Nothing ->
+            text ""
+        Just url ->
+            img [ class "large", src (urlPrexis ++ "large/" ++ url) ] []
+
 
 main : Program Never Model Msg
 main =
