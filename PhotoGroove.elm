@@ -4,6 +4,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Array exposing (Array)
 import Random
+import Http
 
 
 type alias Photo =
@@ -23,12 +24,20 @@ type Msg
       | SupriseMe
       | SetSize ThumbnailSize
       | SelectByIndex Int
+      | LoadPhotos (Result Http.Error String)
 
 
 type ThumbnailSize
     = Small
     | Medium
     | Large
+
+
+initialCmd : Cmd Msg
+initialCmd =
+    "http://elm-in-action.com/photos/list"
+    |> Http.getString
+    |> Http.send LoadPhotos
 
 
 initialModel : Model
@@ -43,11 +52,6 @@ initialModel =
 photoArray : Array Photo
 photoArray =
     Array.fromList initialModel.photos
-
-
-randomPhotoPicker : Random.Generator Int
-randomPhotoPicker =
-  Random.int 0 (Array.length photoArray - 1)
 
 
 getPhotoUrl : Int -> Maybe String
@@ -98,9 +102,32 @@ sizeToString size =
           "large"
 
 
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        LoadPhotos (Ok responseStr) ->
+            let
+                urls =
+                  String.split "," responseStr
+
+                photos =
+                  List.map Photo urls
+            in
+               ( { model
+                   | photos = photos
+                   , selectedUrl = List.head urls
+                 }
+               , Cmd.none
+               )
+
+        LoadPhotos (Err _ ) ->
+            ( { model
+                | loadingError = Just "Error! (Try turning it off and on again?)"
+              }
+            , Cmd.none
+            )
+
         SelectByIndex index ->
             let
                 newSelectedUrl : Maybe String
@@ -149,12 +176,24 @@ viewLarge maybeUrl =
         Just url ->
             img [ class "large", src (urlPrefix ++ "large/" ++ url) ] []
 
+viewOrError : Model -> Html Msg
+viewOrError model =
+    case model.loadingError of
+        Nothing ->
+            view model
+
+        Just errorMessage ->
+            div [ class "error-message" ]
+                [ h1 [] [ text "Photo Groove" ]
+                , p [] [ text errorMessage ]
+                ]
+
 
 main : Program Never Model Msg
 main =
     Html.program
-        { init = ( initialModel, Cmd.none )
-        , view = view
+        { init = ( initialModel, initialCmd )
+        , view = viewOrError
         , update = update
-        , subscriptions = (\model -> Sub.none)
+        , subscriptions = (\_ -> Sub.none)
         }
