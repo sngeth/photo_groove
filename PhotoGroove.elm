@@ -1,14 +1,27 @@
 module PhotoGroove exposing (..)
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (id, class, classList, src, name, type_, title)
+import Json.Decode exposing (string, int, list, Decoder)
+import Json.Decode.Pipeline exposing (decode, required, optional)
 import Html.Events exposing (onClick)
 import Array exposing (Array)
 import Random
-import Http
+import Http exposing (Response)
 
 
 type alias Photo =
-    { url : String }
+    { url : String
+    , size : Int
+    , title: String
+    }
+
+
+photoDecoder : Decoder Photo
+photoDecoder =
+    decode Photo
+        |> required "url" string
+        |> required "size" int
+        |> optional "title" string "(untitled)"
 
 
 type alias Model =
@@ -24,7 +37,15 @@ type Msg
       | SupriseMe
       | SetSize ThumbnailSize
       | SelectByIndex Int
-      | LoadPhotos (Result Http.Error String)
+      | LoadPhotos (Result Http.Error (List Photo))
+
+
+type Error
+    = BadUrl String
+    | Timeout
+    | NetworkError
+    | BadStatus (Response String)
+    | BadPayload String (Response String)
 
 
 type ThumbnailSize
@@ -35,9 +56,9 @@ type ThumbnailSize
 
 initialCmd : Cmd Msg
 initialCmd =
-    "http://elm-in-action.com/photos/list"
-    |> Http.getString
-    |> Http.send LoadPhotos
+    list photoDecoder
+        |> Http.get "http://elm-in-action.com/photos/list.json"
+        |> Http.send LoadPhotos
 
 
 initialModel : Model
@@ -74,9 +95,11 @@ urlPrefix =
 
 viewThumbnail : Maybe String -> Photo -> Html Msg
 viewThumbnail selectedUrl thumbnail =
-    img [ src (urlPrefix ++ thumbnail.url)
-        , classList [ ( "selected", selectedUrl == Just thumbnail.url ) ]
-        , onClick (SelectByUrl thumbnail.url)
+    img
+        [ src (urlPrefix ++ thumbnail.url)
+          , title (thumbnail.title ++ "  [" ++ toString thumbnail.size ++ " KB]")
+          , classList [ ( "selected", selectedUrl == Just thumbnail.url ) ]
+          , onClick (SelectByUrl thumbnail.url)
         ]
         []
 
@@ -106,20 +129,13 @@ sizeToString size =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        LoadPhotos (Ok responseStr) ->
-            let
-                urls =
-                  String.split "," responseStr
-
-                photos =
-                  List.map Photo urls
-            in
-               ( { model
-                   | photos = photos
-                   , selectedUrl = List.head urls
-                 }
-               , Cmd.none
-               )
+        LoadPhotos (Ok photos) ->
+            ( { model
+                | photos = photos
+                , selectedUrl = Maybe.map .url (List.head photos)
+              }
+            , Cmd.none
+            )
 
         LoadPhotos (Err _ ) ->
             ( { model
