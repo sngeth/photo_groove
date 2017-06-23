@@ -9492,6 +9492,76 @@ var _elm_lang$http$Http$StringPart = F2(
 	});
 var _elm_lang$http$Http$stringPart = _elm_lang$http$Http$StringPart;
 
+var _user$project$PhotoGroove$onImmediateValueChange = function (toMsg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'immediate-value-changed',
+		A2(
+			_elm_lang$core$Json_Decode$map,
+			toMsg,
+			A2(
+				_elm_lang$core$Json_Decode$at,
+				{
+					ctor: '::',
+					_0: 'target',
+					_1: {
+						ctor: '::',
+						_0: 'immediateValue',
+						_1: {ctor: '[]'}
+					}
+				},
+				_elm_lang$core$Json_Decode$int)));
+};
+var _user$project$PhotoGroove$paperSlider = _elm_lang$html$Html$node('paper-slider');
+var _user$project$PhotoGroove$viewFilter = F3(
+	function (name, toMsg, magnitude) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('filter-slider'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$label,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(name),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_user$project$PhotoGroove$paperSlider,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$max('11'),
+							_1: {
+								ctor: '::',
+								_0: _user$project$PhotoGroove$onImmediateValueChange(toMsg),
+								_1: {ctor: '[]'}
+							}
+						},
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$label,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(
+									_elm_lang$core$Basics$toString(magnitude)),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+	});
 var _user$project$PhotoGroove$sizeToString = function (size) {
 	var _p0 = size;
 	switch (_p0.ctor) {
@@ -9546,9 +9616,9 @@ var _user$project$PhotoGroove$photoDecoder = A4(
 			'url',
 			_elm_lang$core$Json_Decode$string,
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$PhotoGroove$Photo))));
-var _user$project$PhotoGroove$Model = F4(
-	function (a, b, c, d) {
-		return {photos: a, selectedUrl: b, loadingError: c, chosenSize: d};
+var _user$project$PhotoGroove$Model = F7(
+	function (a, b, c, d, e, f, g) {
+		return {photos: a, selectedUrl: b, loadingError: c, chosenSize: d, hue: e, ripple: f, noise: g};
 	});
 var _user$project$PhotoGroove$LoadPhotos = function (a) {
 	return {ctor: 'LoadPhotos', _0: a};
@@ -9567,6 +9637,30 @@ var _user$project$PhotoGroove$update = F2(
 	function (msg, model) {
 		var _p2 = msg;
 		switch (_p2.ctor) {
+			case 'SetHue':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{hue: _p2._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SetRipple':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{ripple: _p2._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SetNoise':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{noise: _p2._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 			case 'LoadPhotos':
 				if (_p2._0.ctor === 'Ok') {
 					var _p3 = _p2._0._0;
@@ -9678,6 +9772,15 @@ var _user$project$PhotoGroove$viewSizeChooser = function (size) {
 		});
 };
 var _user$project$PhotoGroove$SupriseMe = {ctor: 'SupriseMe'};
+var _user$project$PhotoGroove$SetNoise = function (a) {
+	return {ctor: 'SetNoise', _0: a};
+};
+var _user$project$PhotoGroove$SetRipple = function (a) {
+	return {ctor: 'SetRipple', _0: a};
+};
+var _user$project$PhotoGroove$SetHue = function (a) {
+	return {ctor: 'SetHue', _0: a};
+};
 var _user$project$PhotoGroove$SelectByUrl = function (a) {
 	return {ctor: 'SelectByUrl', _0: a};
 };
@@ -9745,7 +9848,10 @@ var _user$project$PhotoGroove$initialModel = {
 	photos: {ctor: '[]'},
 	selectedUrl: _elm_lang$core$Maybe$Nothing,
 	loadingError: _elm_lang$core$Maybe$Nothing,
-	chosenSize: _user$project$PhotoGroove$Medium
+	chosenSize: _user$project$PhotoGroove$Medium,
+	hue: 0,
+	ripple: 0,
+	noise: 0
 };
 var _user$project$PhotoGroove$photoArray = _elm_lang$core$Array$fromList(_user$project$PhotoGroove$initialModel.photos);
 var _user$project$PhotoGroove$getPhotoUrl = function (index) {
@@ -9792,60 +9898,83 @@ var _user$project$PhotoGroove$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$h3,
-						{ctor: '[]'},
+						_elm_lang$html$Html$div,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text('Thumbnail Size:'),
+							_0: _elm_lang$html$Html_Attributes$class('filters'),
 							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A3(_user$project$PhotoGroove$viewFilter, 'Hue', _user$project$PhotoGroove$SetHue, model.hue),
+							_1: {
+								ctor: '::',
+								_0: A3(_user$project$PhotoGroove$viewFilter, 'Ripple', _user$project$PhotoGroove$SetRipple, model.ripple),
+								_1: {
+									ctor: '::',
+									_0: A3(_user$project$PhotoGroove$viewFilter, 'Noise', _user$project$PhotoGroove$SetNoise, model.noise),
+									_1: {ctor: '[]'}
+								}
+							}
 						}),
 					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$div,
+							_elm_lang$html$Html$h3,
+							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$id('choose-size'),
+								_0: _elm_lang$html$Html$text('Thumbnail Size:'),
 								_1: {ctor: '[]'}
-							},
-							A2(
-								_elm_lang$core$List$map,
-								_user$project$PhotoGroove$viewSizeChooser,
-								{
-									ctor: '::',
-									_0: _user$project$PhotoGroove$Small,
-									_1: {
-										ctor: '::',
-										_0: _user$project$PhotoGroove$Medium,
-										_1: {
-											ctor: '::',
-											_0: _user$project$PhotoGroove$Large,
-											_1: {ctor: '[]'}
-										}
-									}
-								})),
+							}),
 						_1: {
 							ctor: '::',
 							_0: A2(
 								_elm_lang$html$Html$div,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$id('thumbnails'),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class(
-											_user$project$PhotoGroove$sizeToString(model.chosenSize)),
-										_1: {ctor: '[]'}
-									}
+									_0: _elm_lang$html$Html_Attributes$id('choose-size'),
+									_1: {ctor: '[]'}
 								},
 								A2(
 									_elm_lang$core$List$map,
-									_user$project$PhotoGroove$viewThumbnail(model.selectedUrl),
-									model.photos)),
+									_user$project$PhotoGroove$viewSizeChooser,
+									{
+										ctor: '::',
+										_0: _user$project$PhotoGroove$Small,
+										_1: {
+											ctor: '::',
+											_0: _user$project$PhotoGroove$Medium,
+											_1: {
+												ctor: '::',
+												_0: _user$project$PhotoGroove$Large,
+												_1: {ctor: '[]'}
+											}
+										}
+									})),
 							_1: {
 								ctor: '::',
-								_0: _user$project$PhotoGroove$viewLarge(model.selectedUrl),
-								_1: {ctor: '[]'}
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$id('thumbnails'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class(
+												_user$project$PhotoGroove$sizeToString(model.chosenSize)),
+											_1: {ctor: '[]'}
+										}
+									},
+									A2(
+										_elm_lang$core$List$map,
+										_user$project$PhotoGroove$viewThumbnail(model.selectedUrl),
+										model.photos)),
+								_1: {
+									ctor: '::',
+									_0: _user$project$PhotoGroove$viewLarge(model.selectedUrl),
+									_1: {ctor: '[]'}
+								}
 							}
 						}
 					}

@@ -1,9 +1,9 @@
 module PhotoGroove exposing (..)
 import Html exposing (..)
-import Html.Attributes exposing (id, class, classList, src, name, type_, title)
-import Json.Decode exposing (string, int, list, Decoder)
+import Html.Attributes as Attr exposing (id, class, classList, src, name, max, type_, title)
+import Json.Decode exposing (string, int, list, Decoder, at)
 import Json.Decode.Pipeline exposing (decode, required, optional)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, on)
 import Array exposing (Array)
 import Random
 import Http exposing (Response)
@@ -29,11 +29,17 @@ type alias Model =
     , selectedUrl : Maybe String
     , loadingError : Maybe String
     , chosenSize : ThumbnailSize
+    , hue : Int
+    , ripple : Int
+    , noise : Int
     }
 
 
 type Msg
     = SelectByUrl String
+      | SetHue Int
+      | SetRipple Int
+      | SetNoise Int
       | SupriseMe
       | SetSize ThumbnailSize
       | SelectByIndex Int
@@ -67,6 +73,9 @@ initialModel =
     , selectedUrl = Nothing
     , loadingError = Nothing
     , chosenSize = Medium
+    , hue = 0
+    , ripple = 0
+    , noise = 0
     }
 
 
@@ -129,6 +138,21 @@ sizeToString size =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        SetHue hue ->
+          ( { model | hue = hue }
+          , Cmd.none
+          )
+
+        SetRipple ripple ->
+          ( { model | ripple = ripple }
+          , Cmd.none
+          )
+
+        SetNoise noise ->
+          ( { model | noise = noise }
+          , Cmd.none
+          )
+
         LoadPhotos (Ok photos) ->
             ( { model
                 | photos = photos
@@ -176,6 +200,11 @@ view model =
         , button
             [ onClick SupriseMe ]
             [ text "Suprise Me!" ]
+        , div [ class "filters" ]
+            [ viewFilter "Hue" SetHue model.hue
+            , viewFilter "Ripple" SetRipple model.ripple
+            , viewFilter "Noise" SetNoise model.noise
+            ]
         , h3 [] [ text "Thumbnail Size:" ]
         , div [ id "choose-size" ]
             (List.map viewSizeChooser [ Small, Medium, Large ])
@@ -183,6 +212,15 @@ view model =
             (List.map (viewThumbnail model.selectedUrl) model.photos)
         , viewLarge model.selectedUrl
         ]
+
+viewFilter : String -> (Int -> Msg) -> Int -> Html Msg
+viewFilter name toMsg magnitude =
+    div [ class "filter-slider" ]
+        [ label [] [text name ]
+        , paperSlider [ Attr.max "11", onImmediateValueChange toMsg ] []
+        , label [] [ text (toString magnitude) ]
+        ]
+
 
 viewLarge : Maybe String -> Html Msg
 viewLarge maybeUrl =
@@ -213,3 +251,15 @@ main =
         , update = update
         , subscriptions = (\_ -> Sub.none)
         }
+
+paperSlider : List (Attribute msg) -> List (Html msg) -> Html msg
+paperSlider =
+    node "paper-slider"
+
+
+onImmediateValueChange : (Int -> msg) -> Attribute msg
+onImmediateValueChange toMsg =
+    at [ "target", "immediateValue" ] int
+        |> Json.Decode.map toMsg
+        |> on "immediate-value-changed"
+
