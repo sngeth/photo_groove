@@ -1,4 +1,4 @@
-module PhotoGroove exposing (..)
+port module PhotoGroove exposing (..)
 import Html exposing (..)
 import Html.Attributes as Attr exposing (id, class, classList, src, name, max, type_, title)
 import Json.Decode exposing (string, int, list, Decoder, at)
@@ -7,6 +7,15 @@ import Html.Events exposing (onClick, on)
 import Array exposing (Array)
 import Random
 import Http exposing (Response)
+
+
+port setFilters : FilterOptions -> Cmd msg
+
+
+type alias FilterOptions =
+    { url : String
+    , filters : List { name : String, amount : Int }
+    }
 
 
 type alias Photo =
@@ -177,10 +186,10 @@ update msg model =
                         |> Array.get index
                         |> Maybe.map .url
             in
-                ( { model | selectedUrl = newSelectedUrl }, Cmd.none )
+                applyFilters { model | selectedUrl = newSelectedUrl }
 
-        SelectByUrl url ->
-            ( { model | selectedUrl = Just url }, Cmd.none )
+        SelectByUrl selectedUrl ->
+            applyFilters { model | selectedUrl = Just selectedUrl }
 
         SupriseMe ->
            let
@@ -191,6 +200,26 @@ update msg model =
 
         SetSize size ->
             ( { model | chosenSize = size }, Cmd.none )
+
+
+applyFilters : Model -> ( Model, Cmd Msg )
+applyFilters model =
+  case model.selectedUrl of
+    Just selectedUrl ->
+      let
+          filters =
+            [ { name = "Hue", amount = model.hue }
+            , { name = "Ripple", amount = model.ripple }
+            , { name = "Noise", amount = model.noise }
+            ]
+
+          url =
+            urlPrefix ++ "large/" ++ selectedUrl
+      in
+         ( model, setFilters { url = url, filters = filters } )
+
+    Nothing ->
+      ( model, Cmd.none )
 
 
 view : Model -> Html Msg
