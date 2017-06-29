@@ -12,6 +12,9 @@ import Http exposing (Response)
 port setFilters : FilterOptions -> Cmd msg
 
 
+port statusChanges : (String -> msg) -> Sub msg
+
+
 type alias FilterOptions =
     { url : String
     , filters : List { name : String, amount : Float }
@@ -35,6 +38,7 @@ photoDecoder =
 
 type alias Model =
     { photos : List Photo
+    , status : String
     , selectedUrl : Maybe String
     , loadingError : Maybe String
     , chosenSize : ThumbnailSize
@@ -52,6 +56,7 @@ type Msg
       | SupriseMe
       | SetSize ThumbnailSize
       | SelectByIndex Int
+      | SetStatus String
       | LoadPhotos (Result Http.Error (List Photo))
 
 
@@ -79,6 +84,7 @@ initialCmd =
 initialModel : Model
 initialModel =
     { photos = []
+    , status = ""
     , selectedUrl = Nothing
     , loadingError = Nothing
     , chosenSize = Medium
@@ -147,6 +153,9 @@ sizeToString size =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        SetStatus status ->
+          ( { model | status = status }, Cmd.none )
+
         SetHue hue ->
           applyFilters { model | hue = hue }
 
@@ -222,6 +231,7 @@ view model =
         , button
             [ onClick SupriseMe ]
             [ text "Suprise Me!" ]
+        , div [ class "status" ] [ text model.status ]
         , div [ class "filters" ]
             [ viewFilter "Hue" SetHue model.hue
             , viewFilter "Ripple" SetRipple model.ripple
@@ -265,14 +275,24 @@ viewOrError model =
                 ]
 
 
-main : Program Never Model Msg
+main : Program Float Model Msg
 main =
-    Html.program
-        { init = ( initialModel, initialCmd )
+    Html.programWithFlags
+        { init = init
         , view = viewOrError
         , update = update
-        , subscriptions = (\_ -> Sub.none)
+        , subscriptions = \_ -> statusChanges SetStatus
         }
+
+
+init : Float -> ( Model, Cmd Msg )
+init flags =
+  let
+      status =
+        "Initializing Pasta v" ++ toString flags
+  in
+     ( { initialModel | status = status }, initialCmd )
+
 
 paperSlider : List (Attribute msg) -> List (Html msg) -> Html msg
 paperSlider =
